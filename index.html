@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Discord Selfbot Panel</title>
+</head>
+<body>
+  <h2>Login to Dashboard</h2>
+  <input id="password" type="password" placeholder="Enter Password">
+  <button onclick="login()">Login</button>
+  <p id="error" style="color: red;"></p>
+
+  <script>
+    function login() {
+      const pass = document.getElementById('password').value;
+      fetch('http://127.0.0.1:5000/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pass })
+      }).then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            localStorage.setItem("auth", "1");
+            window.location.href = "dashboard.html";
+          } else {
+            document.getElementById('error').innerText = "Invalid password.";
+          }
+        });
+    }
+  </script>
+</body>
+</html>

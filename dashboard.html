@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Selfbot Dashboard</title>
+</head>
+<body>
+  <h2>Selfbot Logs</h2>
+  <pre id="logs">Loading logs...</pre>
+  <button onclick="clearLogs()">Clear Logs</button>
+  <button onclick="exportLogs()">Export Logs</button>
+  <script>
+    if (!localStorage.getItem("auth")) {
+      window.location.href = "index.html";
+    }
+
+    function loadLogs() {
+      fetch('http://127.0.0.1:5000/api/logs')
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById("logs").innerText = data.join("\n");
+        });
+    }
+
+    function clearLogs() {
+      fetch('http://127.0.0.1:5000/api/clear', { method: 'POST' })
+        .then(() => loadLogs());
+    }
+
+    function exportLogs() {
+      window.open('http://127.0.0.1:5000/api/export');
+    }
+
+    setInterval(loadLogs, 2500);
+    loadLogs();
+  </script>
+</body>
+</html>
