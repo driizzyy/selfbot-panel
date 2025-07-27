@@ -1,31 +1,16 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Discord Selfbot Panel</title>
-</head>
-<body>
-  <h2>Login to Dashboard</h2>
-  <input id="password" type="password" placeholder="Enter Password">
-  <button onclick="login()">Login</button>
-  <p id="error" style="color: red;"></p>
 
-  <script>
-    function login() {
-      const pass = document.getElementById('password').value;
-      fetch('http://127.0.0.1:5000/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: pass })
-      }).then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            localStorage.setItem("auth", "1");
-            window.location.href = "dashboard.html";
-          } else {
-            document.getElementById('error').innerText = "Invalid password.";
-          }
-        });
-    }
-  </script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Selfbot Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center">
+  <div class="text-center">
+    <h1 class="text-4xl font-bold mb-4">Selfbot Webpanel</h1>
+    <a href="dashboard.html" class="px-6 py-3 bg-blue-600 rounded hover:bg-blue-700">Open Dashboard</a>
+  </div>
 </body>
 </html>
