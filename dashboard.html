@@ -1,37 +1,116 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Selfbot Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
-  <h2>Selfbot Logs</h2>
-  <pre id="logs">Loading logs...</pre>
-  <button onclick="clearLogs()">Clear Logs</button>
-  <button onclick="exportLogs()">Export Logs</button>
+<body class="bg-gray-900 text-white p-6">
   <script>
-    if (!localStorage.getItem("auth")) {
-      window.location.href = "index.html";
+    let logs = [];
+    let password = "";
+    let interval;
+
+    async function login() {
+      password = document.getElementById("password").value;
+      const res = await fetch("http://127.0.0.1:5000/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        document.getElementById("login-panel").style.display = "none";
+        document.getElementById("dashboard-panel").style.display = "block";
+        interval = setInterval(updateLogs, 2000);
+      } else {
+        alert("Incorrect Password");
+      }
     }
 
-    function loadLogs() {
-      fetch('http://127.0.0.1:5000/api/logs')
-        .then(res => res.json())
-        .then(data => {
-          document.getElementById("logs").innerText = data.join("\n");
-        });
+    async function updateLogs() {
+      const res = await fetch("http://127.0.0.1:5000/api/logs");
+      const data = await res.json();
+      document.getElementById("logs").textContent = data.join("\n");
     }
 
-    function clearLogs() {
-      fetch('http://127.0.0.1:5000/api/clear', { method: 'POST' })
-        .then(() => loadLogs());
+    async function clearLogs() {
+      await fetch("http://127.0.0.1:5000/api/clear", { method: "POST" });
+      document.getElementById("logs").textContent = "";
     }
 
-    function exportLogs() {
-      window.open('http://127.0.0.1:5000/api/export');
+    async function exportLogs() {
+      window.open("http://127.0.0.1:5000/api/export");
     }
 
-    setInterval(loadLogs, 2500);
-    loadLogs();
+    async function updateConfig() {
+      const token = document.getElementById("token").value;
+      const prefix = document.getElementById("prefix").value;
+      await fetch("http://127.0.0.1:5000/api/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, prefix }),
+      });
+      alert("Config updated!");
+    }
+
+    async function sendCommand() {
+      const channel = document.getElementById("channel").value;
+      const cmd = document.getElementById("command").value;
+      await fetch("http://127.0.0.1:5000/api/command", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ channel_id: channel, command: cmd }),
+      });
+    }
+
+    async function controlBot(action) {
+      await fetch("http://127.0.0.1:5000/api/bot/" + action, { method: "POST" });
+    }
   </script>
+
+  <div id="login-panel" class="flex items-center justify-center h-screen">
+    <div class="bg-gray-800 p-8 rounded shadow w-full max-w-sm">
+      <h1 class="text-2xl font-bold mb-4 text-center">Dashboard Login</h1>
+      <input class="w-full p-2 mb-4 rounded bg-gray-700 border border-gray-600" placeholder="Dashboard Password" type="password" id="password">
+      <button onclick="login()" class="w-full bg-blue-600 hover:bg-blue-700 p-2 rounded">Login</button>
+    </div>
+  </div>
+
+  <div id="dashboard-panel" style="display:none;">
+    <h1 class="text-3xl font-bold mb-6">Selfbot Dashboard</h1>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="bg-gray-800 p-4 rounded shadow space-y-2">
+        <h2 class="text-xl font-semibold">Bot Controls</h2>
+        <button onclick="controlBot('start')" class="w-full bg-green-600 p-2 rounded">Start Bot</button>
+        <button onclick="controlBot('stop')" class="w-full bg-red-600 p-2 rounded">Stop Bot</button>
+      </div>
+
+      <div class="bg-gray-800 p-4 rounded shadow space-y-2">
+        <h2 class="text-xl font-semibold">Update Config</h2>
+        <input class="w-full p-2 rounded bg-gray-700 border border-gray-600" placeholder="New Token" id="token" />
+        <input class="w-full p-2 rounded bg-gray-700 border border-gray-600" placeholder="New Prefix" id="prefix" />
+        <button onclick="updateConfig()" class="w-full bg-blue-600 p-2 rounded">Save Config</button>
+      </div>
+
+      <div class="bg-gray-800 p-4 rounded shadow space-y-2">
+        <h2 class="text-xl font-semibold">Send Command</h2>
+        <input class="w-full p-2 rounded bg-gray-700 border border-gray-600" placeholder="Channel ID" id="channel" />
+        <input class="w-full p-2 rounded bg-gray-700 border border-gray-600" placeholder="Command" id="command" />
+        <button onclick="sendCommand()" class="w-full bg-yellow-600 p-2 rounded">Execute</button>
+      </div>
+    </div>
+
+    <div class="bg-gray-800 p-4 rounded shadow space-y-2 mt-6">
+      <h2 class="text-xl font-semibold">Live Logs</h2>
+      <div class="flex gap-4 mb-2">
+        <button onclick="clearLogs()" class="bg-yellow-600 p-2 rounded">Clear</button>
+        <button onclick="exportLogs()" class="bg-purple-600 p-2 rounded">Export</button>
+      </div>
+      <pre id="logs" class="bg-black text-green-300 p-4 rounded h-[300px] overflow-y-scroll text-sm whitespace-pre-wrap"></pre>
+    </div>
+  </div>
 </body>
 </html>
